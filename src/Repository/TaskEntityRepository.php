@@ -15,6 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TaskEntityRepository extends ServiceEntityRepository
 {
+
     // Constructeur injectant les dépendances ManagerRegistry et EntityManagerInterface.
     public function __construct(ManagerRegistry $registry, private EntityManagerInterface $em)
     {
@@ -30,10 +31,28 @@ class TaskEntityRepository extends ServiceEntityRepository
      */
     public function save(TaskEntity $task): void
     {
-        // Persiste l'objet TaskEntity, préparant ainsi l'entité pour l'insertion ou la mise à jour dans la base de données.
-        $this->em->persist($task);
-        // Exécute les modifications en base de données (insertion/mise à jour).
-        $this->em->flush();
+        // // Persiste l'objet TaskEntity, préparant ainsi l'entité pour l'insertion ou la mise à jour dans la base de données.
+        // $this->em->persist($task);
+        // // Exécute les modifications en base de données (insertion/mise à jour).
+        // $this->em->flush();
+
+        //------------ Methode SQL ------------//
+
+    }
+
+    public function createOneTask(TaskEntity $task): void
+    {
+        $conn = $this->em->getConnection();
+
+        $sql = 'INSERT INTO task_entity (title, description)
+                VALUES
+                (:title, :description)
+                ;';
+
+        $resultSet = $conn->executeQuery($sql, [
+            'title' => $task->getTitle(),
+            'description' => $task->getDescription(),
+        ]);
     }
 
     /**
@@ -44,37 +63,61 @@ class TaskEntityRepository extends ServiceEntityRepository
      */
     public function getAllTasks(): array
     {
-        // Obtient le repository pour l'entité TaskEntity pour interagir directement avec la table de tâches.
-        $repository = $this->em->getRepository(TaskEntity::class);
+        // // Obtient le repository pour l'entité TaskEntity pour interagir directement avec la table de tâches.
+        // $repository = $this->em->getRepository(TaskEntity::class);
 
-        // Crée un QueryBuilder pour construire une requête personnalisée.
-        // Ici, on sélectionne uniquement les champs 'title' et 'description' de chaque tâche.
-        $queryBuilder = $repository->createQueryBuilder('t')
-            ->select('t.id', 't.title', 't.description')
-            ->getQuery();
+        // // Crée un QueryBuilder pour construire une requête personnalisée.
+        // // Ici, on sélectionne uniquement les champs 'title' et 'description' de chaque tâche.
+        // $queryBuilder = $repository->createQueryBuilder('t')
+        //     ->select('t.id', 't.title', 't.description')
+        //     ->getQuery();
 
-        // Exécute la requête pour obtenir les résultats sous forme de tableau.
-        $tasks = $queryBuilder->getResult();
+        // // Exécute la requête pour obtenir les résultats sous forme de tableau.
+        // $tasks = $queryBuilder->getResult();
 
-        // Retourne le tableau des tâches, chaque tâche étant représentée par ses champs 'title' et 'description'.
-        return $tasks;
+        // // Retourne le tableau des tâches, chaque tâche étant représentée par ses champs 'title' et 'description'.
+        // return $tasks;
+
+
+        //------------ Methode SQL ------------//
+
+        $conn = $this->em->getConnection();
+
+        $reqStmt = $conn->prepare("SELECT title, description FROM task_entity;");
+
+        $resultSet = $reqStmt->execute();
+
+        return $resultSet->fetchAllAssociative();
     }
 
     //  supprime une tache par son id
     public function deleteOneTasks(int $id): bool
     {
-        // Obtient le repository pour l'entité TaskEntity pour interagir directement avec la table de tâches.
-        $repository = $this->em->getRepository(TaskEntity::class);
+        // // Obtient le repository pour l'entité TaskEntity pour interagir directement avec la table de tâches.
+        // $repository = $this->em->getRepository(TaskEntity::class);
 
-        // Recherche la tâche à supprimer par son ID.
-        $task = $repository->findOneBy(['id' => $id]);
+        // // Recherche la tâche à supprimer par son ID.
+        // $task = $repository->findOneBy(['id' => $id]);
 
-        // Supprime la tâche en utilisant l'EntityManager.
-        $this->em->remove($task);
-        $this->em->flush();
+        // // Supprime la tâche en utilisant l'EntityManager.
+        // $this->em->remove($task);
+        // $this->em->flush();
 
-        return true; // Retourne true pour indiquer que la suppression a réussi.
+        // return true; // Retourne true pour indiquer que la suppression a réussi.
 
+        //------------ Methode SQL ------------//
+
+        $conn = $this->em->getConnection();
+
+        $reqStmt = $conn->prepare("DELETE FROM task_entity WHERE id = :id");
+
+        // Liaison du paramètre 'id' avec le type de données integer
+        $reqStmt->bindValue('id', $id, \PDO::PARAM_INT);
+
+        // Exécution de la requête
+        $reqStmt->execute();
+
+        return true;
     }
 
     // modifie une tache par son id
@@ -97,18 +140,32 @@ class TaskEntityRepository extends ServiceEntityRepository
 
         //------------------------ Methode Ilyass ------------------------//
 
-        // Récupère la tâche actuelle depuis la base de données en recherchant par identifiant.
-        $currentTask = $this->em->getRepository(TaskEntity::class)->findOneBy(['id' => $id]);
+        // // Récupère la tâche actuelle depuis la base de données en recherchant par identifiant.
+        // $currentTask = $this->em->getRepository(TaskEntity::class)->findOneBy(['id' => $id]);
 
-        // Met à jour le titre de la tâche actuelle en utilisant le titre de la tâche modifiée.
-        $currentTask->setTitle($modifiedTask->getTitle());
+        // // Met à jour le titre de la tâche actuelle en utilisant le titre de la tâche modifiée.
+        // $currentTask->setTitle($modifiedTask->getTitle());
 
-        // Met à jour la description de la tâche actuelle en utilisant la description de la tâche modifiée.
-        $currentTask->setDescription($modifiedTask->getDescription());
+        // // Met à jour la description de la tâche actuelle en utilisant la description de la tâche modifiée.
+        // $currentTask->setDescription($modifiedTask->getDescription());
 
-        // Applique les modifications en les enregistrant dans la base de données.
-        $this->em->flush();
+        // // Applique les modifications en les enregistrant dans la base de données.
+        // $this->em->flush();
 
+        //------------ Methode SQL ------------//
+
+        $conn = $this->em->getConnection();
+
+        $reqStmt = $conn->prepare("UPDATE `task_entity`
+                SET title = :title, 
+                    description = :description
+                WHERE id = :id");
+                
+        $reqStmt->bindValue('title', $modifiedTask->getTitle(), \PDO::PARAM_STR);
+        $reqStmt->bindValue('description', $modifiedTask->getDescription(), \PDO::PARAM_STR);
+        $reqStmt->bindValue('id', $id, \PDO::PARAM_INT);
+        
+        $reqStmt->execute();
+        
     }
-
 }

@@ -77,25 +77,32 @@ class TaskController extends AbstractController
         }
 
         // Si la validation est réussie, enregistre la tâche dans la base de données via le repository.
-        $this->taskRepository->save($task);
+        // $this->taskRepository->save($task);
+
+        // utilisation de la function createOneTasks
+        $this->taskRepository->createOneTask($task);
 
         // Retourne une réponse JSON confirmant la création de la tâche avec un statut HTTP 201 (CREATED).
-        return new JsonResponse(["message" => "task created"], Response::HTTP_CREATED);
+        return new JsonResponse(["message" => "task created"], Response::HTTP_OK);
     }
 
     #[Route('/supprimer/{id}', name: 'deleteTask', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        // Appelle la méthode du repository pour supprimer une tâche en fonction de son identifiant.
-        $deleteTasks = $this->taskRepository->deleteOneTasks($id); // Enlève `int` ici
+        try {
+            // Appelle la méthode du repository pour supprimer une tâche en fonction de son identifiant.
+            $deleteTasks = $this->taskRepository->deleteOneTasks($id); // Enlève `int` ici
 
-        // Vérifie si la tâche a bien été supprimée (par exemple, si la méthode `deleteOneTask` retourne un booléen).
-        if (!$deleteTasks) {
-            return new JsonResponse(["message" => "task not found"], Response::HTTP_NOT_FOUND);
+            // Vérifie si la tâche a bien été supprimée (par exemple, si la méthode `deleteOneTask` retourne un booléen).
+            if (!$deleteTasks) {
+                return new JsonResponse(["message" => "task not found"], Response::HTTP_NOT_FOUND);
+            }
+
+            // Retourne une réponse confirmant la suppression de la tâche avec un code HTTP 204 (No Content).
+            return new JsonResponse(["message" => "task deleted"], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse(["message" => $e->getMessage()], Response::HTTP_NOT_FOUND);
         }
-
-        // Retourne une réponse confirmant la suppression de la tâche avec un code HTTP 204 (No Content).
-        return new JsonResponse(["message" => "task deleted"], Response::HTTP_NO_CONTENT);
     }
 
     #[Route('/modifier/{id}', name: 'updateTask', methods: ['PUT'])]
@@ -126,11 +133,8 @@ class TaskController extends AbstractController
             $isUpdated = $this->taskRepository->updateOneTasks($id, $modifiedTask);
 
             return new JsonResponse(["message" => "Tache modifier avec succes"], Response::HTTP_OK);
-
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], Response::HTTP_NOT_FOUND);
         }
-
     }
-
 }
