@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription !{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="h3 mb-3 font-weight-normal">Veuillez vous inscrire</h1>
+
+        <form action="{{ path('app_register') }}" method="post">
+            <!-- CSRF Token for security -->
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <!-- Prénom -->
+            <div class="form-group">
+                <label for="inputFirstName">Prénom</label>
+                <input type="text" name="first_name" id="inputFirstName" class="form-control" required autofocus>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+                <label for="inputLastName">Nom</label>
+                <input type="text" name="last_name" id="inputLastName" class="form-control" required>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="inputEmail">Email</label>
+                <input type="email" name="email" id="inputEmail" class="form-control" required autocomplete="email">
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="form-group">
+                <label for="inputPassword">Mot de passe</label>
+                <input type="password" name="password" id="inputPassword" class="form-control" required autocomplete="new-password">
+            </div>
+
+            <!-- Confirmation du mot de passe -->
+            <div class="form-group">
+                <label for="inputPasswordConfirm">Confirmez le mot de passe</label>
+                <input type="password" name="password_confirmation" id="inputPasswordConfirm" class="form-control" required autocomplete="new-password">
+            </div>
+
+            <!-- Bouton d'inscription -->
+            <button class="btn btn-lg btn-primary btn-block mt-3" type="submit">S'inscrire</button>
+        </form>
+    </div>
+{% endblock %}
